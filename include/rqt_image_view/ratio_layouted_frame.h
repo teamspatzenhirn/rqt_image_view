@@ -48,67 +48,65 @@ namespace rqt_image_view {
  * RatioLayoutedFrame is a layout containing a single frame with a fixed aspect ratio.
  * The default aspect ratio is 4:3.
  */
-class RatioLayoutedFrame
-  : public QFrame
-{
+    class RatioLayoutedFrame : public QFrame {
 
-  Q_OBJECT
+        Q_OBJECT
 
-public:
+        public:
 
-  RatioLayoutedFrame(QWidget* parent, Qt::WindowFlags flags = 0);
+            RatioLayoutedFrame(QWidget *parent, Qt::WindowFlags flags = 0);
 
-  virtual ~RatioLayoutedFrame();
+            virtual ~RatioLayoutedFrame();
 
-  const QImage& getImage() const;
+            const QImage &getImage() const;
 
-  QImage getImageCopy() const;
+            QImage getImageCopy() const;
 
-  void setImage(const QImage& image);
+            void setImage(const QImage &image);
 
-  QRect getAspectRatioCorrectPaintArea();
+            QRect getAspectRatioCorrectPaintArea();
 
-  void resizeToFitAspectRatio();
+            void resizeToFitAspectRatio();
 
-  void setOuterLayout(QHBoxLayout* outer_layout);
+            void setOuterLayout(QHBoxLayout *outer_layout);
 
-  void setInnerFrameMinimumSize(const QSize& size);
+            void setInnerFrameMinimumSize(const QSize &size);
 
-  void setInnerFrameMaximumSize(const QSize& size);
+            void setInnerFrameMaximumSize(const QSize &size);
 
-  void setInnerFrameFixedSize(const QSize& size);
+            void setInnerFrameFixedSize(const QSize &size);
 
-signals:
+            signals:
 
-  void delayed_update();
+            void delayed_update();
 
-  void mouseLeft(int x, int y);
+            void mouseLeft(int x, int y);
 
-protected slots:
+        protected slots:
 
-  void onSmoothImageChanged(bool checked);
+            void onSmoothImageChanged(bool checked);
 
-protected:
+        protected:
 
-  void setAspectRatio(unsigned short width, unsigned short height);
+            void setAspectRatio(unsigned short width, unsigned short height);
 
-  void paintEvent(QPaintEvent* event);
+            void paintEvent(QPaintEvent *event);
 
-private:
+        private:
 
-  static int greatestCommonDivisor(int a, int b);
+            static int greatestCommonDivisor(int a, int b);
 
-  void mousePressEvent(QMouseEvent * mouseEvent);
+            void mousePressEvent(QMouseEvent *mouseEvent);
 
-  QHBoxLayout* outer_layout_;
+            QHBoxLayout *outer_layout_;
 
-  QSize aspect_ratio_;
+            QSize aspect_ratio_;
 
-  QImage qimage_;
-  mutable QMutex qimage_mutex_;
+            QImage qimage_;
+            mutable QMutex qimage_mutex_;
 
-  bool smoothImage_;
-};
+            bool smoothImage_;
+    };
 
 }
 

@@ -57,100 +57,103 @@
 
 namespace rqt_image_view {
 
-class ImageView
-  : public rqt_gui_cpp::Plugin
-{
+    class ImageView : public rqt_gui_cpp::Plugin {
 
-  Q_OBJECT
+        Q_OBJECT
 
-public:
+        public:
 
-  ImageView();
+            ImageView();
 
-  virtual void initPlugin(qt_gui_cpp::PluginContext& context);
+            virtual void initPlugin(qt_gui_cpp::PluginContext &context);
 
-  virtual void shutdownPlugin();
+            virtual void shutdownPlugin();
 
-  virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
+            virtual void
+            saveSettings(qt_gui_cpp::Settings &plugin_settings, qt_gui_cpp::Settings &instance_settings) const;
 
-  virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
+            virtual void
+            restoreSettings(const qt_gui_cpp::Settings &plugin_settings, const qt_gui_cpp::Settings &instance_settings);
 
-protected slots:
+        protected slots:
 
-  virtual void updateTopicList();
+            virtual void updateTopicList();
 
-protected:
+        protected:
 
-  virtual QSet<QString> getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports);
+            virtual QSet <QString>
+            getTopics(const QSet <QString> &message_types, const QSet <QString> &message_sub_types,
+                      const QList <QString> &transports);
 
-  virtual void selectTopic(const QString& topic);
+            virtual void selectTopic(const QString &topic);
 
-protected slots:
+        protected slots:
 
-  virtual void onTopicChanged(int index);
+            virtual void onTopicChanged(int index);
 
-  virtual void onZoom1(bool checked);
+            virtual void onZoom1(bool checked);
 
-  virtual void onDynamicRange(bool checked);
+            virtual void onDynamicRange(bool checked);
 
-  virtual void saveImage();
+            virtual void saveImage();
 
-  virtual void updateNumGridlines();
+            virtual void updateNumGridlines();
 
-  virtual void onMousePublish(bool checked);
+            virtual void onMousePublish(bool checked);
 
-  virtual void onMouseLeft(int x, int y);
+            virtual void onMouseLeft(int x, int y);
 
-  virtual void onPubTopicChanged();
+            virtual void onPubTopicChanged();
 
-  virtual void onHideToolbarChanged(bool hide);
+            virtual void onHideToolbarChanged(bool hide);
 
-  virtual void onRotateLeft();
-  virtual void onRotateRight();
+            virtual void onRotateLeft();
 
-protected:
+            virtual void onRotateRight();
 
-  virtual void callbackImage(const sensor_msgs::msg::Image::ConstSharedPtr& msg);
+        protected:
 
-  virtual void invertPixels(int x, int y);
+            virtual void callbackImage(const sensor_msgs::msg::Image::ConstSharedPtr &msg);
 
-  QList<int> getGridIndices(int size) const;
+            virtual void invertPixels(int x, int y);
 
-  virtual void overlayGrid();
+            QList<int> getGridIndices(int size) const;
 
-  Ui::ImageViewWidget ui_;
+            virtual void overlayGrid();
 
-  QWidget* widget_;
+            Ui::ImageViewWidget ui_;
 
-  image_transport::Subscriber subscriber_;
+            QWidget *widget_;
 
-  cv::Mat conversion_mat_;
+            image_transport::Subscriber subscriber_;
 
-private:
+            cv::Mat conversion_mat_;
 
-  enum RotateState {
-    ROTATE_0 = 0,
-    ROTATE_90 = 1,
-    ROTATE_180 = 2,
-    ROTATE_270 = 3,
+        private:
 
-    ROTATE_STATE_COUNT
-  };
+            enum RotateState {
+                ROTATE_0 = 0,
+                ROTATE_90 = 1,
+                ROTATE_180 = 2,
+                ROTATE_270 = 3,
 
-  void syncRotateLabel();
+                ROTATE_STATE_COUNT
+            };
 
-  QString arg_topic_name;
+            void syncRotateLabel();
 
-  rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr pub_mouse_left_;
+            QString arg_topic_name;
 
-  bool pub_topic_custom_;
+            rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr pub_mouse_left_;
 
-  QAction* hide_toolbar_action_;
+            bool pub_topic_custom_;
 
-  int num_gridlines_;
+            QAction *hide_toolbar_action_;
 
-  RotateState rotate_state_;
-};
+            int num_gridlines_;
+
+            RotateState rotate_state_;
+    };
 
 }
 
