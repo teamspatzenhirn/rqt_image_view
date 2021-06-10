@@ -32,8 +32,8 @@
 
 #include <rqt_image_view/ratio_layouted_frame.h>
 
-#include <assert.h>
 #include <QMouseEvent>
+#include <assert.h>
 
 namespace rqt_image_view {
 
@@ -41,15 +41,13 @@ namespace rqt_image_view {
             : QFrame(), outer_layout_(NULL), aspect_ratio_(4, 3), smoothImage_(false) {
         (void) parent;
         (void) flags;
-        connect(this, SIGNAL(delayed_update()), this, SLOT(update()), Qt::QueuedConnection);
+        connect(this, SIGNAL(delayed_update()), this, SLOT(update()),
+                Qt::QueuedConnection);
     }
 
-    RatioLayoutedFrame::~RatioLayoutedFrame() {
-    }
+    RatioLayoutedFrame::~RatioLayoutedFrame() {}
 
-    const QImage &RatioLayoutedFrame::getImage() const {
-        return qimage_;
-    }
+    const QImage &RatioLayoutedFrame::getImage() const { return qimage_; }
 
     QImage RatioLayoutedFrame::getImageCopy() const {
         QImage img;
@@ -59,7 +57,7 @@ namespace rqt_image_view {
         return img;
     }
 
-    void RatioLayoutedFrame::setImage(const QImage &image)//, QMutex* image_mutex)
+    void RatioLayoutedFrame::setImage(const QImage &image) //, QMutex* image_mutex)
     {
         qimage_mutex_.lock();
         qimage_ = image.copy();
@@ -87,7 +85,8 @@ namespace rqt_image_view {
         }
 
         double layout_ar = width / height;
-        const double image_ar = double(aspect_ratio_.width()) / double(aspect_ratio_.height());
+        const double image_ar =
+                double(aspect_ratio_.width()) / double(aspect_ratio_.height());
         if (layout_ar > image_ar) {
             // too large width
             width = height * image_ar;
@@ -128,7 +127,8 @@ namespace rqt_image_view {
         setInnerFrameMaximumSize(size);
     }
 
-    void RatioLayoutedFrame::setAspectRatio(unsigned short width, unsigned short height) {
+    void RatioLayoutedFrame::setAspectRatio(unsigned short width,
+                                            unsigned short height) {
         int divisor = greatestCommonDivisor(width, height);
         if (divisor != 0) {
             aspect_ratio_.setWidth(width / divisor);
@@ -143,16 +143,17 @@ namespace rqt_image_view {
         if (!qimage_.isNull()) {
             resizeToFitAspectRatio();
             // TODO: check if full draw is really necessary
-            //QPaintEvent* paint_event = dynamic_cast<QPaintEvent*>(event);
-            //painter.drawImage(paint_event->rect(), qimage_);
+            // QPaintEvent* paint_event = dynamic_cast<QPaintEvent*>(event);
+            // painter.drawImage(paint_event->rect(), qimage_);
             if (!smoothImage_) {
                 painter.drawImage(contentsRect(), qimage_);
             } else {
                 if (contentsRect().width() == qimage_.width()) {
                     painter.drawImage(contentsRect(), qimage_);
                 } else {
-                    QImage image = qimage_.scaled(contentsRect().width(), contentsRect().height(),
-                                                  Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                    QImage image =
+                            qimage_.scaled(contentsRect().width(), contentsRect().height(),
+                                           Qt::KeepAspectRatio, Qt::SmoothTransformation);
                     painter.drawImage(contentsRect(), image);
                 }
             }
@@ -185,4 +186,4 @@ namespace rqt_image_view {
         smoothImage_ = checked;
     }
 
-}
+} // namespace rqt_image_view
