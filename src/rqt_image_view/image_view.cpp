@@ -132,8 +132,18 @@ namespace rqt_image_view {
                 SLOT(onHideToolbarChanged(bool)));
 
         /*
-         * This plugin will be placed within a QDockWidget, thus we can get some information on whether
-         * it is visible or not via the parentWidget function
+         * Note:
+         * The following visibility check is used to improve the efficiency of the plugin.
+         * By default, the plugin will always subscribe to the selected image (even if it is hidden by other
+         * image views). Thus, a rqt perspective having a plugin for each image (even the debug ones) will always cause
+         * the subscription and hence the calculation of all images. This is extremely costly, mainly because of the
+         * debug images.
+         *
+         * In order to avoid these costs and still provide the option to easily switch between the images (without
+         * having to create a perspective for each image) the plugin has been modified to subscribe only while the
+         * view is rendered.
+         * Hereby, we exploit that the plugin is placed within a QDockWidget, which allows us to check whether it is
+         * visible via the parentWidget function.
          */
         auto *parent = dynamic_cast<QDockWidget*>(widget_->parentWidget());
 
@@ -624,7 +634,7 @@ namespace rqt_image_view {
                         std::bind(&ImageView::callbackImage, this, std::placeholders::_1));
                 qDebug("ImageView::onTopicChanged() to topic '%s'", cur_topic_name_.c_str());
             } catch (...) {
-                QMessageBox::warning(widget_, tr("Loading image transport plugin failed"), "Subscription failed!");
+                QMessageBox::warning(widget_, tr("Creating the subscription has failed!"), "Subscription failed!");
             }
         }
     }
