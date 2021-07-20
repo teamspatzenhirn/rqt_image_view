@@ -37,121 +37,124 @@
 
 #include <ui_image_view.h>
 
-#include <image_transport/image_transport.hpp>
-#include <image_transport/subscriber.hpp>
-
-#include <sensor_msgs/msg/image.hpp>
 #include <geometry_msgs/msg/point.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/image.hpp>
 
 #include <opencv2/core/core.hpp>
 
 #include <QAction>
 #include <QImage>
 #include <QList>
-#include <QString>
 #include <QSet>
 #include <QSize>
+#include <QString>
 #include <QWidget>
 
 #include <vector>
 
 namespace rqt_image_view {
 
-class ImageView
-  : public rqt_gui_cpp::Plugin
-{
+    class ImageView : public rqt_gui_cpp::Plugin {
 
-  Q_OBJECT
+        Q_OBJECT
 
-public:
+    public:
+        ImageView();
 
-  ImageView();
+        virtual void initPlugin(qt_gui_cpp::PluginContext &context);
 
-  virtual void initPlugin(qt_gui_cpp::PluginContext& context);
+        virtual void shutdownPlugin();
 
-  virtual void shutdownPlugin();
+        virtual void saveSettings(qt_gui_cpp::Settings &plugin_settings,
+                                  qt_gui_cpp::Settings &instance_settings) const;
 
-  virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
+        virtual void restoreSettings(const qt_gui_cpp::Settings &plugin_settings,
+                                     const qt_gui_cpp::Settings &instance_settings);
 
-  virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
 
-protected slots:
+    protected:
+        virtual QSet <QString> getTopics(const QSet <QString> &message_types);
 
-  virtual void updateTopicList();
+        virtual void selectTopic(const QString &topic);
 
-protected:
+    protected slots:
 
-  virtual QSet<QString> getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports);
+        virtual void updateTopicList();
 
-  virtual void selectTopic(const QString& topic);
+        virtual void onTopicChanged(int index);
 
-protected slots:
+        virtual void onZoom1(bool checked);
 
-  virtual void onTopicChanged(int index);
+        virtual void onDynamicRange(bool checked);
 
-  virtual void onZoom1(bool checked);
+        virtual void saveImage();
 
-  virtual void onDynamicRange(bool checked);
+        virtual void updateNumGridlines();
 
-  virtual void saveImage();
+        virtual void onMousePublish(bool checked);
 
-  virtual void updateNumGridlines();
+        virtual void onMouseLeft(int x, int y);
 
-  virtual void onMousePublish(bool checked);
+        virtual void onPubTopicChanged();
 
-  virtual void onMouseLeft(int x, int y);
+        virtual void onHideToolbarChanged(bool hide);
 
-  virtual void onPubTopicChanged();
+        virtual void onRotateLeft();
 
-  virtual void onHideToolbarChanged(bool hide);
+        virtual void onRotateRight();
 
-  virtual void onRotateLeft();
-  virtual void onRotateRight();
+        virtual void onVisibilityChanged(bool visible);
 
-protected:
+        virtual void subscribe();
 
-  virtual void callbackImage(const sensor_msgs::msg::Image::ConstSharedPtr& msg);
+        virtual void unsubscribe();
 
-  virtual void invertPixels(int x, int y);
+    protected:
+        virtual void
+        callbackImage(sensor_msgs::msg::Image::ConstSharedPtr msg);
 
-  QList<int> getGridIndices(int size) const;
+        virtual void invertPixels(int x, int y);
 
-  virtual void overlayGrid();
+        QList<int> getGridIndices(int size) const;
 
-  Ui::ImageViewWidget ui_;
+        virtual void overlayGrid();
 
-  QWidget* widget_;
+        Ui::ImageViewWidget ui_;
 
-  image_transport::Subscriber subscriber_;
+        QWidget *widget_;
 
-  cv::Mat conversion_mat_;
+        rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscriber_;
 
-private:
+        cv::Mat conversion_mat_;
 
-  enum RotateState {
-    ROTATE_0 = 0,
-    ROTATE_90 = 1,
-    ROTATE_180 = 2,
-    ROTATE_270 = 3,
+    private:
+        enum RotateState {
+            ROTATE_0 = 0,
+            ROTATE_90 = 1,
+            ROTATE_180 = 2,
+            ROTATE_270 = 3,
 
-    ROTATE_STATE_COUNT
-  };
+            ROTATE_STATE_COUNT
+        };
 
-  void syncRotateLabel();
+        void syncRotateLabel();
 
-  QString arg_topic_name;
+        QString arg_topic_name;
 
-  rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr pub_mouse_left_;
+        rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr pub_mouse_left_;
 
-  bool pub_topic_custom_;
+        bool pub_topic_custom_;
 
-  QAction* hide_toolbar_action_;
+        QAction *hide_toolbar_action_;
 
-  int num_gridlines_;
+        int num_gridlines_;
 
-  RotateState rotate_state_;
-};
+        RotateState rotate_state_;
 
-}
+        std::string cur_topic_name_;
+    };
+
+} // namespace rqt_image_view
 
 #endif // rqt_image_view__ImageView_H
