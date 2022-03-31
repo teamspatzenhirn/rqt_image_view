@@ -38,6 +38,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <QDockWidget>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPainter>
@@ -119,11 +120,20 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   hide_toolbar_action_->setCheckable(true);
   ui_.image_frame->addAction(hide_toolbar_action_);
   connect(hide_toolbar_action_, SIGNAL(toggled(bool)), this, SLOT(onHideToolbarChanged(bool)));
+
+  /*
+   * Note:
+   * The following is for performing a visibility check for each image, such that the plugin only subscribes to the
+   * visible ones. If images are created on-demand (e.g. debug images) this can improve the efficiency greatly.
+   */
+  auto *parent = dynamic_cast<QDockWidget*>(widget_->parentWidget());
+
+  connect(parent, SIGNAL(visibilityChanged(bool)), this, SLOT(onVisibilityChanged(bool)));
 }
 
 void ImageView::shutdownPlugin()
 {
-  subscriber_.shutdown();
+  unsubscribe();
   pub_mouse_left_.reset();
 }
 
@@ -306,34 +316,17 @@ void ImageView::onTopicChanged(int index)
 {
   conversion_mat_.release();
 
-  subscriber_.shutdown();
+  unsubscribe();
 
   // reset image on topic change
   ui_.image_frame->setImage(QImage());
 
   QStringList parts = ui_.topics_combo_box->itemData(index).toString().split(" ");
-  QString topic = parts.first();
-  QString transport = parts.length() == 2 ? parts.last() : "raw";
 
-  if (!topic.isEmpty())
-  {
-    const image_transport::TransportHints hints(node_.get(), transport.toStdString());
-    try {
-      auto subscription_options = rclcpp::SubscriptionOptions();
-      // TODO(jacobperron): Enable once ROS CLI args are supported https://github.com/ros-visualization/rqt/issues/262
-      // subscription_options.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
-      subscriber_ = image_transport::create_subscription(
-        node_.get(),
-        topic.toStdString(),
-        std::bind(&ImageView::callbackImage, this, std::placeholders::_1),
-        hints.getTransport(),
-        rmw_qos_profile_sensor_data,
-        subscription_options);
-      qDebug("ImageView::onTopicChanged() to topic '%s' with transport '%s'", topic.toStdString().c_str(), subscriber_.getTransport().c_str());
-    } catch (image_transport::TransportLoadException& e) {
-      QMessageBox::warning(widget_, tr("Loading image transport plugin failed"), e.what());
-    }
-  }
+  cur_topic_name_ = parts.first().toStdString();
+  cur_transport_ = (parts.length() == 2) ? parts.last().toStdString() : "raw";
+
+  subscribe();
 
   onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
@@ -644,6 +637,49 @@ void ImageView::callbackImage(const sensor_msgs::msg::Image::ConstSharedPtr& msg
   // though could check and see if the aspect ratio changed or not.
   onZoom1(ui_.zoom_1_push_button->isChecked());
 }
+
+void ImageView::onVisibilityChanged(bool visible)
+{
+  if (!visible)
+  {
+    unsubscribe();
+  }
+  else
+  {
+    subscribe();
+  }
+}
+
+void ImageView::unsubscribe()
+{
+  qDebug("ImageView::unsubscribe from topic '%s'", cur_topic_name_.c_str());
+  subscriber_.shutdown();
+  ui_.image_frame->setImage(QImage());
+}
+
+void ImageView::subscribe()
+{
+  if (!cur_topic_name_.empty())
+  {
+      const image_transport::TransportHints hints(node_.get(), cur_transport_);
+      try {
+          auto subscription_options = rclcpp::SubscriptionOptions();
+          // TODO(jacobperron): Enable once ROS CLI args are supported https://github.com/ros-visualization/rqt/issues/262
+          // subscription_options.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
+          subscriber_ = image_transport::create_subscription(
+                  node_.get(),
+                  cur_topic_name_,
+                  std::bind(&ImageView::callbackImage, this, std::placeholders::_1),
+                  hints.getTransport(),
+                  rmw_qos_profile_sensor_data,
+                  subscription_options);
+          qDebug("ImageView::subscribe to topic '%s' with transport '%s'", cur_topic_name_.c_str(), subscriber_.getTransport().c_str());
+      } catch (image_transport::TransportLoadException& e) {
+          QMessageBox::warning(widget_, tr("Loading image transport plugin failed"), e.what());
+      }
+  }
+}
+
 }
 
 PLUGINLIB_EXPORT_CLASS(rqt_image_view::ImageView, rqt_gui_cpp::Plugin)
