@@ -35,7 +35,19 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
-#include <cv_bridge/cv_bridge.h>
+#if defined __has_include
+#  if __has_include (<cv_bridge/cv_bridge.hpp>)
+//   ROS jazzy
+#    include <cv_bridge/cv_bridge.hpp>
+#  else
+//   ROS humble
+#    include <cv_bridge/cv_bridge.h>
+#  endif
+#else
+// ??? => assume ROS humble
+#  include <cv_bridge/cv_bridge.h>
+#endif
+
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include <QDockWidget>
