@@ -108,6 +108,10 @@ protected slots:
   virtual void onRotateLeft();
   virtual void onRotateRight();
 
+  virtual void onVisibilityChanged(bool visible);
+  virtual void subscribe();
+  virtual void unsubscribe();
+
 protected:
 
   virtual void callbackImage(const sensor_msgs::msg::Image::ConstSharedPtr& msg);
@@ -150,6 +154,9 @@ private:
   int num_gridlines_;
 
   RotateState rotate_state_;
+
+  std::string cur_transport_;
+  std::string cur_topic_name_;
 };
 
 }
